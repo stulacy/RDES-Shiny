@@ -15,4 +15,4 @@ It has the following properties:
 
 # Running 
 
-To run this web-app, simply clone the repo and run it via the development web-server that comes with Shiny. I do not currently have it publicly hosted.
+To run this web-app, firstly install the [discrete event simulation package](https://github.com/stulacy/RDES), then simply clone this repo and run it via the development web-server that comes with Shiny. I do not currently have it publicly hosted.
