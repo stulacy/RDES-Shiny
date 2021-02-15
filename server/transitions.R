@@ -263,10 +263,10 @@ observeEvent(input$estimateparamsbutton, {
     # Subset data set to the transition of interest
     data <- long_data() %>%
                 filter(trans == trans_index)
-
+    
     form <- paste0("Surv(Tstart, Tstop, status) ~ ", paste(covars, collapse='+'))
     num_dists <- length(TIME_DISTS)
-
+    
     # Iterate through each distribution and build model
     withProgress(message="Fitting models", value=0, max=num_dists, {
 
@@ -301,6 +301,7 @@ observeEvent(input$estimateparamsbutton, {
     transitions[[trans_name]]$coefs <- get_coefs_from_mod(DISTS[[winning_dist]], winning_mod, cat_vars)
     transitions[[trans_name]]$dist <- winning_dist
     transitions[[trans_name]]$draw <- create_eventtime_draw(winning_dist)
+    transitions[[trans_name]]$model <- winning_mod
 
     # Reset specification of transition probabilities area for next transition
     output$addtransarea <- renderUI({NULL})

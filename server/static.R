@@ -150,33 +150,30 @@ DISTS <- list("Normal"=list(params=c("mean", "variance"),
 COVAR_DISTS <- names(DISTS)[sapply(DISTS, function(d) d$attribute_prior)]
 TIME_DISTS <- names(DISTS)[sapply(DISTS, function(d) d$time_to_event)]
 
-run_simulation_cpp <- function(trans_mat, num_inds, entryrate, censor_time, attributes, transitions) {
+run_simulation_cpp <- function(trans_mat, num_inds, entryrate, censor_time, attributes, transitions,
+                               n_sims, age_limit, ci=TRUE, age_scale=365.25) {
 
     # Obtain entry times and attributes for incident individuals
     initial_times <- calculate_event_times(num_inds, entryrate, censor_time)
     n_inds <- length(initial_times)
-    raw_attrs <- lapply(attributes, function(x) x$draw(n_inds))
-    setDT(raw_attrs)
-    new_data <- bind_rows(apply(raw_attrs, 1, convert_stringdata_to_numeric, attributes))
-    new_data <- cbind(intercept=1, new_data)
-
-    # TODO Have some switch where this is governed by a time-scale parameter
-    if ('age' %in% colnames(new_data)) {
-        new_data$age <- new_data$age * 365.25
+    new_data <- bind_cols(lapply(attributes, function(x) x$draw(n_inds)))
+    # Set required columns as factors
+    for (a in names(new_data)) {
+        # Create dummy variables for categorical
+        if (attributes[[a]]$type == 'Categorical') {
+            new_data[[a]] <- factor(new_data[[a]], levels=attributes[[a]]$levels)
+        }
     }
-
     # Line that runs the simulation
-    history <- desCpp(transitions, trans_mat, as.matrix(new_data), initial_times)
+    history <- cohort_simulation(transitions, new_data, trans_mat, start_time=initial_times, M=n_sims,
+                                 agecol='age', agescale=age_scale, agelimit=age_limit*age_scale, ci=ci)
 
     history <- data.table(history)
-    setnames(history, c('id', 'state', 'time'))
-    history[, c('id', 'state') := list(as.factor(id + 1),
-                                       as.integer(state))]
-
-    # Add patient attribute information to the results if have it
-    if (ncol(raw_attrs) > 0) {
-        raw_attrs[, id := as.factor(seq(n_inds))]
-        history <- history[raw_attrs, nomatch=0, on='id']  # Inner join in DT syntax
+    history[, id := as.factor(id + 1) ]
+    browser()
+    # Simulation key isn't included in the output unless CI are requested
+    if (!ci) {
+        history[, simulation := 1]
     }
     history
 }
