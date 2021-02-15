@@ -225,7 +225,8 @@ long_data <- reactive({
             }
 
         }
-
+        
+        
         if (!is.null(id_var)) {
             long <- msprep(time=c(NA, time_vars),
                            status=c(NA, status_vars),
@@ -236,5 +237,16 @@ long_data <- reactive({
                            data=df, trans=trans_mat,
                            keep=co_var)
         }
+        
+        # Explicitly set characters as factors
+        # TODO this should be performed on the raw data
+        attrs <- all_raw_attrs()
+        for (attr in names(attrs)) {
+            if (attrs[[attr]]$type == 'Categorical' && attr %in% colnames(long)) {
+                long[[attr]] <- factor(long[[attr]], levels=attrs[[attr]]$levels)
+            }
+        }
+        
+        long
     })
 })
