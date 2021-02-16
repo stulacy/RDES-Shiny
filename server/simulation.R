@@ -41,7 +41,7 @@ output$simendstates <- renderUI({
                 if (is.na(end_states_table[state])) 0 else end_states_table[state] 
             })
             item_list <- list(h4("Average state occupancy"),
-                              renderTable(data.frame(state=this_states, num=corrected_missing))
+                              renderTable(data.frame(State=this_states, `Occupancy (pct)`=corrected_missing*100))
             )
             do.call(tagList, item_list)
         })
@@ -221,11 +221,9 @@ simoutput <- eventReactive(input$runmultiplesimbutton, {
     age_limit <- if (!is.null(input$agelimit) && input$agelimit) 100 else FALSE
 
     withProgress(message="Running simulations...", {
-        print(system.time({
-            end_states <- run_simulation_cpp(trans_mat, num_inds, entry_rate, censor_time,
-                               attrs, lapply(transition_list, function(x) x$model),
-                               n_sims, age_limit)
-        }))
+        end_states <- run_simulation_cpp(trans_mat, num_inds, entry_rate, censor_time,
+                           attrs, lapply(transition_list, function(x) x$model),
+                           n_sims, age_limit)
     })
 
     end_states

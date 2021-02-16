@@ -151,7 +151,7 @@ COVAR_DISTS <- names(DISTS)[sapply(DISTS, function(d) d$attribute_prior)]
 TIME_DISTS <- names(DISTS)[sapply(DISTS, function(d) d$time_to_event)]
 
 run_simulation_cpp <- function(trans_mat, num_inds, entryrate, censor_time, attributes, transitions,
-                               n_sims, age_limit, ci=TRUE, age_scale=365.25) {
+                               n_sims, age_limit, ci=FALSE, age_scale=365.25) {
 
     # Obtain entry times and attributes for incident individuals
     initial_times <- calculate_event_times(num_inds, entryrate, censor_time)
